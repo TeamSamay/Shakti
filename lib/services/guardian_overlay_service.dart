@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GuardianOverlayService {
   GuardianOverlayService._();
@@ -13,6 +14,14 @@ class GuardianOverlayService {
 
     _starting = true;
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final enabled = prefs.getBool('enable_overlay_bubble') ?? true;
+      if (!enabled) {
+        final active = await FlutterOverlayWindow.isActive();
+        if (active) await FlutterOverlayWindow.closeOverlay();
+        return;
+      }
+
       var granted = await FlutterOverlayWindow.isPermissionGranted();
       if (!granted) {
         granted = await FlutterOverlayWindow.requestPermission() ?? false;

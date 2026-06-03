@@ -16,6 +16,7 @@ import 'pages/chatbot_page.dart';
 import 'pages/emergency_check_in_screen.dart';
 import 'pages/profile_page.dart';
 import 'widgets/route_search_sheet.dart';
+import '../widgets/emergency_trigger_button.dart';
 
 // ── Pharmacy Tier Model is now in MapService ──────────────────────────────────
 
@@ -246,7 +247,7 @@ class _CustomerMapTabState extends State<CustomerMapTab>
             Positioned(
               right: 16,
               bottom: 112,
-              child: _buildGuardianBubble(),
+              child: const EmergencyTriggerButton(),
             ),
           // Bottom Navigation
           if (!_isRouting)

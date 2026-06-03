@@ -14,6 +14,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import 'mic_style.dart';
 import 'voice_assisatnt_page.dart';
+import 'ai_fake_call_screen.dart';
 
 const Color _chatBackground = Color(0xFFF8FAFC);
 const Color _chatSurface = Colors.white;
@@ -455,34 +456,18 @@ Tell me what is happening or where you are going.
       key: _scaffoldKey,
       backgroundColor: _chatBackground,
       appBar: AppBar(
-        centerTitle: true,
+        centerTitle: false,
         backgroundColor: _chatBackground,
         elevation: 0,
         iconTheme: const IconThemeData(color: _chatPrimaryText),
-        titleTextStyle: const TextStyle(
-            color: _chatPrimaryText, fontSize: 19, fontWeight: FontWeight.w600),
         leading: IconButton(
-          icon: const Icon(Icons.menu),
+          icon: const Icon(Icons.menu_rounded),
           onPressed: () {
             // Open the drawer and start the slide animation
             _scaffoldKey.currentState?.openDrawer();
           },
         ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              'assets/logo2.png',
-              height: 50,
-              width: 50,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) =>
-                  const Icon(Icons.chat_bubble_outline, size: 40),
-            ),
-            const SizedBox(width: 2),
-            const Text('Shakti'),
-          ],
-        ),
+        title: const SizedBox.shrink(),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
@@ -551,7 +536,7 @@ Tell me what is happening or where you are going.
                               child: Container(
                                 color: _chatBackground,
                                 child: messages.isEmpty
-                                    ? _buildEmptyState()
+                                    ? _buildShaktiEmptyState()
                                     : _buildMessagesList(),
                               ),
                             ),
@@ -570,67 +555,82 @@ Tell me what is happening or where you are going.
     );
   }
 
-  // ... rest of the code remains unchanged
-  Widget _buildEmptyState() {
+  Widget _buildShaktiEmptyState() {
     return Center(
       child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/logo.png',
-                width: 160,
-                height: 160,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => Icon(
-                    Icons.support_agent,
-                    size: 100,
-                    color: Theme.of(context).primaryColor),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Hello, I\'m Shakti',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: _chatPrimaryText,
-                  fontFamily: 'NotoSansDevanagari',
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Your personal AI for women\'s safety and support. I\'m here to listen and help.\n\nनमस्ते! मैं आपकी सुरक्षा के लिए यहाँ हूँ।',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: _chatSecondaryText,
-                  height: 1.4,
-                  fontFamily: 'NotoSansDevanagari',
-                ),
-              ),
-              const SizedBox(height: 32),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                alignment: WrapAlignment.center,
-                children: [
-                  _buildSuggestionButton(
-                      Icons.security, 'Tips for personal safety'),
-                  _buildSuggestionButton(
-                      Icons.support_agent, 'I need someone to talk to'),
-                  _buildSuggestionButton(
-                      Icons.location_on, 'Find local support resources'),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 82,
+              height: 82,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: _chatBorder),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF2563EB).withOpacity(0.10),
+                    blurRadius: 24,
+                    offset: const Offset(0, 10),
+                  ),
                 ],
               ),
-            ],
-          ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Image.asset(
+                  'assets/logo.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.shield_rounded,
+                    size: 42,
+                    color: _chatAccent,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 28),
+            const Text(
+              'How can I help you stay safe?',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: _chatPrimaryText,
+                height: 1.15,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Ask about SOS, safer routes, evidence, fake call, or emergency messages.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: _chatSecondaryText,
+                height: 1.45,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 34),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              alignment: WrapAlignment.center,
+              children: [
+                _buildSuggestionButton(Icons.sos_rounded, 'Emergency help'),
+                _buildSuggestionButton(Icons.route_rounded, 'Safer route'),
+                _buildSuggestionButton(Icons.videocam_rounded, 'Evidence tips'),
+                _buildSuggestionButton(Icons.call_rounded, 'Emergency text'),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
+
+  Widget _buildEmptyState() => _buildShaktiEmptyState();
 
   Widget _buildMessagesList() {
     return Container(
@@ -649,565 +649,281 @@ Tell me what is happening or where you are going.
     );
   }
 
-  Widget _buildMessageBubble(ChatMessage message) {
-    int index = messages.indexOf(message);
-    bool isBot = !message.isUser;
-    final markdownStyleSheet =
-        MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-      p: const TextStyle(
-        color: _chatPrimaryText,
-        fontSize: 16,
-        height: 1.5,
-        fontFamily: 'NotoSansDevanagari',
-      ),
-      strong: const TextStyle(
-        color: _chatPrimaryText,
-        fontWeight: FontWeight.bold,
-        fontSize: 16.5,
-        fontFamily: 'NotoSansDevanagari',
-      ),
-      h1: const TextStyle(
-        color: _chatPrimaryText,
-        fontWeight: FontWeight.bold,
-        fontSize: 20,
-        fontFamily: 'NotoSansDevanagari',
-      ),
-      h2: const TextStyle(
-        color: _chatAccent,
-        fontWeight: FontWeight.bold,
-        fontSize: 18,
-        fontFamily: 'NotoSansDevanagari',
-      ),
-      h3: const TextStyle(
-        color: _chatAccent,
-        fontWeight: FontWeight.bold,
-        fontSize: 17,
-        fontFamily: 'NotoSansDevanagari',
-      ),
-      listBullet: const TextStyle(
-        color: _chatPrimaryText,
-        fontSize: 16,
-        height: 1.5,
-        fontFamily: 'NotoSansDevanagari',
-      ),
-      blockquote: const TextStyle(
-        color: _chatSecondaryText,
-        fontStyle: FontStyle.italic,
-        fontSize: 15,
-        fontFamily: 'NotoSansDevanagari',
-      ),
-      code: const TextStyle(
-        backgroundColor: _chatElevated,
-        color: _chatAccent,
-        fontFamily: 'monospace',
-        fontSize: 14,
-      ),
-      tableHead: const TextStyle(
-        fontWeight: FontWeight.bold,
-        color: _chatPrimaryText,
-        fontSize: 16,
-        fontFamily: 'NotoSansDevanagari',
-      ),
-      blockSpacing: 12,
-      listIndent: 20,
-    );
-    bool isLegal = isBot && message.text.toLowerCase().contains("legal help");
-    bool isEmergency = isBot &&
-        (message.text.toLowerCase().contains("emergency") ||
-            message.text
-                .toLowerCase()
-                .contains("your safety is my #1 priority"));
-
+  Widget _buildTypingIndicator() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Column(
-        crossAxisAlignment:
-            message.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: message.isUser
-                ? MainAxisAlignment.end
-                : MainAxisAlignment.start,
-            children: [
-              Flexible(
-                child: isLegal || isEmergency
-                    ? Card(
-                        color: isLegal
-                            ? const Color(0xFFFFF3E0)
-                            : const Color(0xFFFFEBEE),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                          side: BorderSide(
-                            color: isLegal
-                                ? const Color(0xFFFF9800)
-                                : const Color(0xFFD32F2F),
-                            width: 2,
-                          ),
-                        ),
-                        elevation: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 14),
-                          child: isLegal
-                              ? Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Icon(
-                                      Icons.gavel,
-                                      color: const Color(0xFFFF9800),
-                                      size: 24,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: MarkdownBody(
-                                        data: message.text,
-                                        styleSheet: markdownStyleSheet.copyWith(
-                                          p: const TextStyle(
-                                              color: Colors.black87,
-                                              fontSize: 14,
-                                              fontFamily: 'NotoSansDevanagari'),
-                                          strong: const TextStyle(
-                                              color: Color(0xFFFF9800),
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14.5,
-                                              fontFamily: 'NotoSansDevanagari'),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 14),
-                                  child: MarkdownBody(
-                                    data: message.text,
-                                    styleSheet: markdownStyleSheet.copyWith(
-                                      p: const TextStyle(
-                                          color: Colors.black87,
-                                          fontSize: 14,
-                                          fontFamily: 'NotoSansDevanagari'),
-                                      strong: const TextStyle(
-                                          color: Color(0xFFD32F2F),
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14.5,
-                                          fontFamily: 'NotoSansDevanagari'),
-                                    ),
-                                  ),
-                                ),
-                        ),
-                      )
-                    : Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: message.isUser ? _chatUserBubble : _chatSurface,
-                          border: Border.all(color: _chatBorder),
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        child: _buildContent(
-                            message), // Call the new content builder
-                      ),
-              ),
-            ],
-          ),
-          if (isBot)
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0, top: 2.0),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildLargeIconButton(
-                    icon: Icons.copy,
-                    tooltip: 'Copy',
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: message.text));
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  _buildLargeIconButton(
-                    icon: currentlySpeakingIndex == index && isTtsPlaying
-                        ? Icons.stop
-                        : Icons.volume_up,
-                    tooltip: currentlySpeakingIndex == index && isTtsPlaying
-                        ? 'Stop'
-                        : 'Speak',
-                    onPressed: () async {
-                      if (currentlySpeakingIndex == index && isTtsPlaying) {
-                        await flutterTts.stop();
-                        setState(() {
-                          isTtsPlaying = false;
-                          currentlySpeakingIndex = null;
-                        });
-                      } else {
-                        await flutterTts.stop();
-                        setState(() {
-                          currentlySpeakingIndex = index;
-                          isTtsPlaying = true;
-                        });
-                        await flutterTts.speak(message.text);
-                        flutterTts.setCompletionHandler(() {
-                          setState(() {
-                            isTtsPlaying = false;
-                            currentlySpeakingIndex = null;
-                          });
-                        });
-                        flutterTts.setCancelHandler(() {
-                          setState(() {
-                            isTtsPlaying = false;
-                            currentlySpeakingIndex = null;
-                          });
-                        });
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  _buildLargeIconButton(
-                    icon: Icons.refresh,
-                    tooltip: 'Regenerate',
-                    onPressed: () {
-                      _regenerateResponse(index);
-                    },
-                  ),
-                ],
-              ),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _chatSurface,
+              border: Border.all(color: _chatBorder),
+              borderRadius: BorderRadius.circular(16),
             ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(_chatAccent),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Shakti is typing...',
+                  style: TextStyle(
+                    color: _chatSecondaryText,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  // New method to build content based on message type
-  Widget _buildContent(ChatMessage message) {
-    if (message.type == 'image' && message.filePath != null) {
-      return Container(
-        padding: const EdgeInsets.all(8.0),
-        decoration: BoxDecoration(
-          color: message.isUser ? _chatUserBubble : _chatSurface,
-          border: Border.all(color: _chatBorder),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Image.file(
-              File(message.filePath!),
-              width: 200, // Adjust size as needed
-              height: 200,
-              fit: BoxFit.cover,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message.text,
-              style: TextStyle(
-                color: message.isUser ? Colors.white : _chatPrimaryText,
-                fontSize: 16,
+  Widget _buildMessageBubble(ChatMessage message) {
+    bool isBot = !message.isUser;
+    final markdownStyleSheet = MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+      p: TextStyle(color: message.isUser ? Colors.white : _chatPrimaryText, fontSize: 16),
+      strong: TextStyle(color: message.isUser ? Colors.white : _chatPrimaryText, fontWeight: FontWeight.bold),
+    );
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isBot) ...[
+            Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: _chatElevated,
+                shape: BoxShape.circle,
+                border: Border.all(color: _chatBorder),
+              ),
+              child: Image.asset(
+                'assets/logo.png',
+                width: 20,
+                height: 20,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.shield_rounded,
+                  size: 20,
+                  color: _chatAccent,
+                ),
               ),
             ),
           ],
-        ),
-      );
-    } else if (message.type == 'file' && message.filePath != null) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.insert_drive_file, color: _chatAccent),
-          const SizedBox(width: 8),
           Flexible(
-            child: Text(
-              message.text,
-              style: const TextStyle(
-                color: _chatPrimaryText,
-                fontSize: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: message.isUser ? _chatUserBubble : _chatSurface,
+                border: message.isUser ? null : Border.all(color: _chatBorder),
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(16),
+                  topRight: const Radius.circular(16),
+                  bottomLeft: message.isUser ? const Radius.circular(16) : const Radius.circular(4),
+                  bottomRight: message.isUser ? const Radius.circular(4) : const Radius.circular(16),
+                ),
+                boxShadow: message.isUser
+                    ? [
+                        BoxShadow(
+                          color: _chatUserBubble.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+              ),
+              child: Column(
+                crossAxisAlignment: message.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                children: [
+                  if (message.type == 'image' && message.data != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.memory(
+                          Uint8List.fromList(message.data!),
+                          width: 200,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  if (message.type == 'file')
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.insert_drive_file, color: message.isUser ? Colors.white : _chatAccent),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              message.text,
+                              style: TextStyle(
+                                color: message.isUser ? Colors.white : _chatPrimaryText,
+                                fontStyle: FontStyle.italic,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    MarkdownBody(
+                      data: message.text,
+                      styleSheet: markdownStyleSheet,
+                      selectable: true,
+                    ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _formatTime(message.timestamp),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: message.isUser ? Colors.white.withOpacity(0.7) : _chatSecondaryText,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
         ],
-      );
-    } else {
-      // Existing MarkdownBody or Text widget for regular text messages
-      return !message.isUser
-          ? MarkdownBody(
-              data: message.text,
-              styleSheet:
-                  MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-                p: const TextStyle(
-                  color: _chatPrimaryText,
-                  fontSize: 16,
-                  height: 1.5,
-                  fontFamily: 'NotoSansDevanagari',
-                ),
-                strong: const TextStyle(
-                  color: _chatPrimaryText,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.5,
-                  fontFamily: 'NotoSansDevanagari',
-                ),
-                h1: const TextStyle(
-                  color: _chatPrimaryText,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  fontFamily: 'NotoSansDevanagari',
-                ),
-                h2: const TextStyle(
-                  color: _chatAccent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  fontFamily: 'NotoSansDevanagari',
-                ),
-                h3: const TextStyle(
-                  color: _chatAccent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 17,
-                  fontFamily: 'NotoSansDevanagari',
-                ),
-                listBullet: const TextStyle(
-                  color: _chatPrimaryText,
-                  fontSize: 16,
-                  height: 1.5,
-                  fontFamily: 'NotoSansDevanagari',
-                ),
-                blockquote: const TextStyle(
-                  color: _chatSecondaryText,
-                  fontStyle: FontStyle.italic,
-                  fontSize: 15,
-                  fontFamily: 'NotoSansDevanagari',
-                ),
-                code: const TextStyle(
-                  backgroundColor: _chatElevated,
-                  color: _chatAccent,
-                  fontFamily: 'monospace',
-                  fontSize: 14,
-                ),
-                tableHead: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: _chatPrimaryText,
-                  fontSize: 16,
-                  fontFamily: 'NotoSansDevanagari',
-                ),
-                blockSpacing: 12,
-                listIndent: 20,
-              ),
-            )
-          : Text(
-              message.text,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
-            );
-    }
-  }
-
-  Widget _buildLargeIconButton(
-      {required IconData icon,
-      required String tooltip,
-      required VoidCallback onPressed}) {
-    return SizedBox(
-      width: 34,
-      height: 34,
-      child: IconButton(
-        icon: Icon(icon, size: 18),
-        padding: EdgeInsets.zero,
-        constraints: const BoxConstraints(),
-        tooltip: tooltip,
-        onPressed: onPressed,
-      ),
-    );
-  }
-
-  Widget _buildTypingIndicator() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
-            child: Icon(FontAwesomeIcons.shield,
-                size: 18, color: Theme.of(context).primaryColor),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Shakti is typing...",
-                style: TextStyle(
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 13,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildTypingDot(0),
-                  const SizedBox(width: 4),
-                  _buildTypingDot(1),
-                  const SizedBox(width: 4),
-                  _buildTypingDot(2),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTypingDot(int index) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.5, end: 1.0),
-      duration: const Duration(milliseconds: 800),
-      curve: Interval(0.1 * index, 0.6 + 0.1 * index, curve: Curves.easeInOut),
-      builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          child: child,
-        );
-      },
-      child: Container(
-        width: 8,
-        height: 8,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Theme.of(context).primaryColor.withOpacity(0.4),
-        ),
       ),
     );
   }
 
   Widget _buildMessageInput() {
     final isInputNotEmpty = _messageController.text.trim().isNotEmpty;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _chatBackground,
-        border: const Border(top: BorderSide(color: _chatBorder, width: 1)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.45),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
+    return SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        decoration: BoxDecoration(
+          color: _chatSurface,
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(color: _chatBorder),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0F172A).withOpacity(0.08),
+              blurRadius: 22,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
         child: Row(
           children: [
-            Container(
-              decoration: const BoxDecoration(
-                color: _chatElevated,
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.add, color: _chatAccent),
-                onPressed: _onAddPressed,
-                tooltip: 'Add feature',
-              ),
+            _inputCircleButton(
+              icon: Icons.add_rounded,
+              color: _chatPrimaryText,
+              background: const Color(0xFFF8FAFC),
+              onTap: _onAddPressed,
+              tooltip: 'Attach',
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Expanded(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
-                decoration: BoxDecoration(
-                  color: _chatSurface,
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: _chatBorder, width: 1),
-                ),
-                child: TextField(
-                  controller: _messageController,
-                  style: const TextStyle(color: _chatPrimaryText, fontSize: 14),
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(vertical: 12),
-                    hintText: 'Type a message...',
-                    hintStyle: TextStyle(
-                        color: _chatSecondaryText,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400),
-                    border: InputBorder.none,
+              child: TextField(
+                controller: _messageController,
+                style: const TextStyle(color: _chatPrimaryText, fontSize: 14),
+                decoration: const InputDecoration(
+                  hintText: 'Ask Shakti',
+                  hintStyle: TextStyle(
+                    color: _chatSecondaryText,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
-                  onChanged: (text) {
-                    final newIsInputNotEmpty = text.trim().isNotEmpty;
-                    if (newIsInputNotEmpty != isInputNotEmpty) {
-                      setState(() {});
-                    }
-                  },
-                  onSubmitted: _sendMessage,
-                  minLines: 1,
-                  maxLines: 5,
-                  enabled: !isTyping,
+                  border: InputBorder.none,
+                  isDense: true,
                 ),
+                onChanged: (_) => setState(() {}),
+                onSubmitted: _sendMessage,
+                minLines: 1,
+                maxLines: 5,
+                enabled: !isTyping,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             if (isTyping)
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _chatAccent,
-                  minimumSize: const Size(36, 48),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                ),
-                icon: const Icon(Icons.stop, size: 20, color: Colors.white),
-                label: const Text('Stop',
-                    style: TextStyle(fontSize: 15, color: Colors.white)),
-                onPressed: () {
+              _inputCircleButton(
+                icon: Icons.stop_rounded,
+                color: Colors.white,
+                background: const Color(0xFFE11D48),
+                onTap: () {
                   setState(() {
                     _stopRequested = true;
                     isTyping = false;
                   });
                 },
+                tooltip: 'Stop',
               )
             else if (isInputNotEmpty)
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [_chatAccent, _chatAccentDeep],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.send, color: Colors.white),
-                  onPressed: () => _sendMessage(_messageController.text),
-                  tooltip: 'Send',
-                ),
+              _inputCircleButton(
+                icon: Icons.arrow_upward_rounded,
+                color: Colors.white,
+                background: _chatAccent,
+                onTap: () => _sendMessage(_messageController.text),
+                tooltip: 'Send',
               )
             else ...[
-              Container(
-                decoration: const BoxDecoration(
-                  color: _chatElevated,
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.mic, color: _chatAccent),
-                  iconSize: 24,
-                  onPressed: _onMicPressed,
-                  tooltip: 'Voice Input',
-                ),
+              _inputCircleButton(
+                icon: Icons.mic_none_rounded,
+                color: _chatAccent,
+                background: const Color(0xFFEFF6FF),
+                onTap: _onMicPressed,
+                tooltip: 'Voice input',
               ),
               const SizedBox(width: 6),
-              Container(
-                decoration: const BoxDecoration(
-                  color: _chatElevated,
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.auto_awesome, color: _chatAccentDeep),
-                  iconSize: 24,
-                  onPressed: _onVoiceAssistantPressed,
-                  tooltip: 'Voice Assistant',
-                ),
+              _inputCircleButton(
+                icon: Icons.graphic_eq_rounded,
+                color: Colors.white,
+                background: _chatAccentDeep,
+                onTap: _onVoiceAssistantPressed,
+                tooltip: 'Voice assistant',
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _inputCircleButton({
+    required IconData icon,
+    required Color color,
+    required Color background,
+    required VoidCallback onTap,
+    required String tooltip,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(color: background, shape: BoxShape.circle),
+          child: Icon(icon, color: color, size: 22),
         ),
       ),
     );
@@ -1513,7 +1229,7 @@ Tell me what is happening or where you are going.
                       border: Border.all(color: _chatBorder),
                     ),
                     child: Image.asset(
-                      'assets/logo2.png',
+                      'assets/logo.png',
                       height: 32,
                       width: 32,
                       fit: BoxFit.contain,
@@ -2022,31 +1738,21 @@ Tell me what is happening or where you are going.
   }
 
   Widget _buildSuggestionButton(IconData icon, String text) {
-    return SizedBox(
-      width: 320,
-      child: ElevatedButton.icon(
-        icon: Icon(icon, color: _chatAccent, size: 22),
-        label: Text(
-          text,
-          style: const TextStyle(
-            color: _chatPrimaryText,
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-          ),
-          maxLines: 1,
+    return ActionChip(
+      avatar: Icon(icon, color: _chatAccent, size: 18),
+      label: Text(
+        text,
+        style: const TextStyle(
+          color: _chatPrimaryText,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
         ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-            side: const BorderSide(color: _chatBorder),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-          alignment: Alignment.centerLeft,
-        ),
-        onPressed: () => _sendMessage(text),
       ),
+      backgroundColor: Colors.white,
+      side: const BorderSide(color: _chatBorder),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      onPressed: () => _sendMessage(text),
     );
   }
 }
