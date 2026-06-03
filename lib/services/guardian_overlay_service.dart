@@ -8,6 +8,7 @@ class GuardianOverlayService {
   GuardianOverlayService._();
 
   static bool _starting = false;
+  static const _overlayPreferenceKey = 'enable_overlay_bubble_v2';
 
   static Future<void> ensureStarted() async {
     if (!Platform.isAndroid || _starting) return;
@@ -15,10 +16,9 @@ class GuardianOverlayService {
     _starting = true;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final enabled = prefs.getBool('enable_overlay_bubble') ?? true;
+      final enabled = prefs.getBool(_overlayPreferenceKey) ?? false;
       if (!enabled) {
-        final active = await FlutterOverlayWindow.isActive();
-        if (active) await FlutterOverlayWindow.closeOverlay();
+        await close();
         return;
       }
 
@@ -34,17 +34,27 @@ class GuardianOverlayService {
       await FlutterOverlayWindow.showOverlay(
         enableDrag: true,
         overlayTitle: 'Shakti Guardian',
-        overlayContent: 'Emergency bubble active',
+        overlayContent: 'Tap for emergency help',
         flag: OverlayFlag.defaultFlag,
         visibility: NotificationVisibility.visibilityPublic,
         positionGravity: PositionGravity.auto,
-        height: 210,
-        width: 260,
+        height: 92,
+        width: 92,
       );
     } catch (e) {
       debugPrint('Guardian overlay unavailable: $e');
     } finally {
       _starting = false;
+    }
+  }
+
+  static Future<void> close() async {
+    if (!Platform.isAndroid) return;
+    try {
+      final active = await FlutterOverlayWindow.isActive();
+      if (active) await FlutterOverlayWindow.closeOverlay();
+    } catch (e) {
+      debugPrint('Guardian overlay close skipped: $e');
     }
   }
 }

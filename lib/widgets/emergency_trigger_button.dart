@@ -3,7 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class EmergencyTriggerButton extends StatefulWidget {
-  const EmergencyTriggerButton({super.key});
+  const EmergencyTriggerButton({
+    super.key,
+    this.onEmergencyTriggered,
+    this.size = 56,
+  });
+
+  final VoidCallback? onEmergencyTriggered;
+  final double size;
 
   @override
   State<EmergencyTriggerButton> createState() => _EmergencyTriggerButtonState();
@@ -54,7 +61,9 @@ class _EmergencyTriggerButtonState extends State<EmergencyTriggerButton>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const EmergencyCountdownDialog(),
+      builder: (context) => EmergencyCountdownDialog(
+        onEmergencyTriggered: widget.onEmergencyTriggered,
+      ),
     ).then((_) {
       // Reset animation when dialog closes
       setState(() {
@@ -76,10 +85,10 @@ class _EmergencyTriggerButtonState extends State<EmergencyTriggerButton>
               return Transform.scale(
                 scale: _scaleAnimation.value,
                 child: Container(
-                  width: 64,
-                  height: 64,
+                  width: widget.size,
+                  height: widget.size,
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.8),
+                    color: const Color(0xFFDC2626).withOpacity(0.72),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -87,20 +96,20 @@ class _EmergencyTriggerButtonState extends State<EmergencyTriggerButton>
             },
           ),
         Material(
-          color: const Color(0xFFE11D48),
+          color: const Color(0xFFDC2626),
           shape: const CircleBorder(),
           elevation: _isAnimating ? 0 : 10,
-          shadowColor: const Color(0xFFE11D48).withOpacity(0.4),
+          shadowColor: const Color(0xFFDC2626).withOpacity(0.38),
           child: InkWell(
             onTap: _onTrigger,
             customBorder: const CircleBorder(),
-            child: const SizedBox(
-              width: 64,
-              height: 64,
-              child: Icon(
-                Icons.warning_rounded,
+            child: SizedBox(
+              width: widget.size,
+              height: widget.size,
+              child: const Icon(
+                Icons.sos_rounded,
                 color: Colors.white,
-                size: 32,
+                size: 27,
               ),
             ),
           ),
@@ -111,7 +120,9 @@ class _EmergencyTriggerButtonState extends State<EmergencyTriggerButton>
 }
 
 class EmergencyCountdownDialog extends StatefulWidget {
-  const EmergencyCountdownDialog({super.key});
+  const EmergencyCountdownDialog({super.key, this.onEmergencyTriggered});
+
+  final VoidCallback? onEmergencyTriggered;
 
   @override
   State<EmergencyCountdownDialog> createState() =>
@@ -148,6 +159,7 @@ class _EmergencyCountdownDialogState extends State<EmergencyCountdownDialog> {
       _triggered = true;
     });
     HapticFeedback.heavyImpact();
+    widget.onEmergencyTriggered?.call();
     // In a real app, this would start the camera and audio recording services.
   }
 
@@ -167,11 +179,11 @@ class _EmergencyCountdownDialogState extends State<EmergencyCountdownDialog> {
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.red, width: 2),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: const Color(0xFFDC2626), width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: Colors.red.withOpacity(0.3),
+                color: const Color(0xFFDC2626).withOpacity(0.22),
                 blurRadius: 20,
                 spreadRadius: 5,
               ),
@@ -180,23 +192,34 @@ class _EmergencyCountdownDialogState extends State<EmergencyCountdownDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.emergency, color: Colors.red, size: 64),
+              Container(
+                width: 72,
+                height: 72,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFF1E8),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.health_and_safety_rounded,
+                  color: Color(0xFFDC2626),
+                  size: 40,
+                ),
+              ),
               const SizedBox(height: 16),
               const Text(
-                'EMERGENCY TRIGGERED',
+                'Emergency Tracking Active',
                 style: TextStyle(
-                  color: Colors.red,
+                  color: Color(0xFF111827),
                   fontSize: 22,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               const Text(
-                'AI Agent is active.\nVoice and Camera recording started.',
+                'Live location is being shared. Audio, camera, and safety agent are standing by.',
                 style: TextStyle(
-                  color: Colors.black87,
+                  color: Color(0xFF475569),
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -206,10 +229,21 @@ class _EmergencyCountdownDialogState extends State<EmergencyCountdownDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildStatusIndicator(Icons.mic, 'Audio', Colors.red),
-                  _buildStatusIndicator(Icons.videocam, 'Camera', Colors.red),
                   _buildStatusIndicator(
-                      Icons.location_on, 'Location', Colors.red),
+                    Icons.mic,
+                    'Audio',
+                    const Color(0xFFDC2626),
+                  ),
+                  _buildStatusIndicator(
+                    Icons.videocam,
+                    'Camera',
+                    const Color(0xFFDC2626),
+                  ),
+                  _buildStatusIndicator(
+                    Icons.location_on,
+                    'Location',
+                    const Color(0xFFDC2626),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -218,14 +252,14 @@ class _EmergencyCountdownDialogState extends State<EmergencyCountdownDialog> {
                   Navigator.of(context).pop();
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[200],
-                  foregroundColor: Colors.black87,
+                  backgroundColor: const Color(0xFFF1F5F9),
+                  foregroundColor: const Color(0xFF111827),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   minimumSize: const Size(double.infinity, 50),
                 ),
-                child: const Text('Cancel Emergency'),
+                child: const Text('Cancel Tracking'),
               ),
             ],
           ),
@@ -239,11 +273,11 @@ class _EmergencyCountdownDialogState extends State<EmergencyCountdownDialog> {
       child: Container(
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
-          color: Colors.red,
+          color: const Color(0xFFDC2626),
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: Colors.red.withOpacity(0.5),
+              color: const Color(0xFFDC2626).withOpacity(0.42),
               blurRadius: 30,
               spreadRadius: 10,
             ),
@@ -253,12 +287,11 @@ class _EmergencyCountdownDialogState extends State<EmergencyCountdownDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'TRIGGERING\nEMERGENCY',
+              'Starting\nEmergency Tracking',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 24,
+                fontSize: 23,
                 fontWeight: FontWeight.w900,
-                letterSpacing: 2,
               ),
               textAlign: TextAlign.center,
             ),
@@ -274,7 +307,7 @@ class _EmergencyCountdownDialogState extends State<EmergencyCountdownDialog> {
                 child: Text(
                   '$_countdown',
                   style: const TextStyle(
-                    color: Colors.red,
+                    color: Color(0xFFDC2626),
                     fontSize: 64,
                     fontWeight: FontWeight.w900,
                   ),
@@ -283,7 +316,7 @@ class _EmergencyCountdownDialogState extends State<EmergencyCountdownDialog> {
             ),
             const SizedBox(height: 32),
             const Text(
-              'AI Agent will start camera and audio recording automatically.',
+              'Location sharing, camera, and audio protection will activate automatically.',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 14,
@@ -306,7 +339,7 @@ class _EmergencyCountdownDialogState extends State<EmergencyCountdownDialog> {
                 ),
               ),
               child: const Text(
-                'CANCEL',
+                'Cancel',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),

@@ -38,10 +38,13 @@ class _CustomerMapTabState extends State<CustomerMapTab>
   mapbox.MapboxMap? _mapboxMap;
   Timer? _styleCheckTimer;
   Timer? _locationUpdateTimer;
+  Timer? _emergencyBannerTimer;
   Position? _currentPosition;
   User? _currentUser;
   StreamSubscription<User?>? _userSubscription;
   bool _mapInitialized = false;
+  bool _hasCenteredOnUser = false;
+  bool _showEmergencyBanner = false;
 
   bool _isRouting = false;
   MapboxPlace? _destination;
@@ -89,7 +92,10 @@ class _CustomerMapTabState extends State<CustomerMapTab>
       );
       if (!mounted) return;
       setState(() => _currentPosition = pos);
-      if (centerMap) _flyTo(pos.latitude, pos.longitude);
+      if (centerMap || !_hasCenteredOnUser) {
+        _hasCenteredOnUser = true;
+        _flyTo(pos.latitude, pos.longitude);
+      }
     } catch (e) {
       debugPrint('Location error: $e');
     }
@@ -107,6 +113,7 @@ class _CustomerMapTabState extends State<CustomerMapTab>
     _mapboxMap!.scaleBar.updateSettings(
       mapbox.ScaleBarSettings(enabled: false),
     );
+    _enableLocationPuck();
 
     _styleCheckTimer?.cancel();
     _styleCheckTimer = Timer.periodic(const Duration(milliseconds: 500), (
@@ -130,11 +137,27 @@ class _CustomerMapTabState extends State<CustomerMapTab>
     _polylineManager =
         await _mapboxMap!.annotations.createPolylineAnnotationManager();
     await _enable3DFeatures();
+    _enableLocationPuck();
     final pos = _currentPosition;
     if (pos != null) {
       _flyTo(pos.latitude, pos.longitude);
     } else {
       _flyTo(_nandedLat, _nandedLng);
+    }
+  }
+
+  Future<void> _enableLocationPuck() async {
+    if (_mapboxMap == null) return;
+    try {
+      await _mapboxMap!.location.updateSettings(
+        mapbox.LocationComponentSettings(
+          enabled: true,
+          pulsingEnabled: true,
+          puckBearingEnabled: true,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Location puck skipped: $e');
     }
   }
 
@@ -203,10 +226,19 @@ class _CustomerMapTabState extends State<CustomerMapTab>
     _refreshCurrentLocation(centerMap: true);
   }
 
+  void _showEmergencyTrackingBanner() {
+    _emergencyBannerTimer?.cancel();
+    if (mounted) setState(() => _showEmergencyBanner = true);
+    _emergencyBannerTimer = Timer(const Duration(seconds: 8), () {
+      if (mounted) setState(() => _showEmergencyBanner = false);
+    });
+  }
+
   @override
   void dispose() {
     _styleCheckTimer?.cancel();
     _locationUpdateTimer?.cancel();
+    _emergencyBannerTimer?.cancel();
     _userSubscription?.cancel();
     super.dispose();
   }
@@ -243,11 +275,31 @@ class _CustomerMapTabState extends State<CustomerMapTab>
                 ],
               ),
             ),
+          if (_showEmergencyBanner && !_isRouting)
+            Positioned(
+              top: 106,
+              left: 16,
+              right: 16,
+              child: _buildEmergencyTrackingBanner(),
+            ),
+          if (!_isRouting)
+            Positioned(
+              right: 16,
+              bottom: 188,
+              child: EmergencyTriggerButton(
+                onEmergencyTriggered: _showEmergencyTrackingBanner,
+              ),
+            ),
           if (!_isRouting)
             Positioned(
               right: 16,
               bottom: 112,
-              child: const EmergencyTriggerButton(),
+              child: _roundAction(
+                icon: Icons.call_rounded,
+                color: const Color(0xFF059669),
+                background: Colors.white,
+                onTap: _openDemoFakeCallSheet,
+              ),
             ),
           // Bottom Navigation
           if (!_isRouting)
@@ -311,6 +363,16 @@ class _CustomerMapTabState extends State<CustomerMapTab>
     if (place != null && _currentPosition != null) {
       _startRoute(place);
     }
+  }
+
+  void _openDemoFakeCallSheet() {
+    HapticFeedback.selectionClick();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _buildDemoFakeCallSheet(),
+    );
   }
 
   Future<void> _startRoute(MapboxPlace place) async {
@@ -481,6 +543,225 @@ class _CustomerMapTabState extends State<CustomerMapTab>
     );
   }
 
+  Widget _buildEmergencyTrackingBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.22),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: const BoxDecoration(
+              color: Color(0xFFFFF1E8),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.health_and_safety_rounded,
+              color: Color(0xFFDC2626),
+              size: 21,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Emergency tracking active',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Live location and safety status are being shared.',
+                  style: TextStyle(
+                    color: Color(0xFFCBD5E1),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              _emergencyBannerTimer?.cancel();
+              setState(() => _showEmergencyBanner = false);
+            },
+            icon: const Icon(Icons.close_rounded, color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDemoFakeCallSheet() {
+    return SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(24, 18, 24, 24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.22),
+              blurRadius: 28,
+              offset: const Offset(0, 14),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 42,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+            const SizedBox(height: 22),
+            CircleAvatar(
+              radius: 38,
+              backgroundColor: const Color(0xFFEFF6FF),
+              child: const Text(
+                'M',
+                style: TextStyle(
+                  color: Color(0xFF2563EB),
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Mom \u2665',
+              style: TextStyle(
+                color: Color(0xFF111827),
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              '03:24',
+              style: TextStyle(
+                color: Color(0xFF475569),
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 26),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 3,
+              mainAxisSpacing: 18,
+              crossAxisSpacing: 14,
+              childAspectRatio: 0.92,
+              children: [
+                _fakeCallControl(Icons.mic_off_rounded, 'Mute'),
+                _fakeCallControl(Icons.volume_up_rounded, 'Speaker'),
+                _fakeCallControl(Icons.dialpad_rounded, 'Keypad'),
+                _fakeCallControl(
+                  Icons.sos_rounded,
+                  'Emergency\nTrigger',
+                  active: true,
+                ),
+                _fakeCallControl(Icons.notes_rounded, 'Notes'),
+                _fakeCallControl(Icons.contacts_rounded, 'Contacts'),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Material(
+              color: const Color(0xFFE11D48),
+              shape: const CircleBorder(),
+              elevation: 8,
+              shadowColor: const Color(0xFFE11D48).withOpacity(0.28),
+              child: InkWell(
+                onTap: () => Navigator.of(context).pop(),
+                customBorder: const CircleBorder(),
+                child: const SizedBox(
+                  width: 64,
+                  height: 64,
+                  child: Icon(
+                    Icons.call_end_rounded,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'End Call',
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _fakeCallControl(
+    IconData icon,
+    String label, {
+    bool active = false,
+  }) {
+    final color = active ? const Color(0xFFE11D48) : const Color(0xFF111827);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: active ? const Color(0xFFFFF1F2) : const Color(0xFFF1F5F9),
+            shape: BoxShape.circle,
+            border: active
+                ? Border.all(color: const Color(0xFFE11D48), width: 1.5)
+                : null,
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          style: TextStyle(
+            color: color,
+            fontSize: 11,
+            height: 1.05,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildAccountButton() {
     return GestureDetector(
       onTap: () => Navigator.of(context).push(_fastRoute(const ProfilePage())),
@@ -539,10 +820,10 @@ class _CustomerMapTabState extends State<CustomerMapTab>
 
   Widget _buildGuardianBubble() {
     return Material(
-      color: const Color(0xFFE11D48),
+      color: const Color(0xFFDC2626),
       shape: const CircleBorder(),
       elevation: 10,
-      shadowColor: const Color(0xFFE11D48).withOpacity(0.35),
+      shadowColor: const Color(0xFFDC2626).withOpacity(0.35),
       child: InkWell(
         onTap: () {
           HapticFeedback.heavyImpact();

@@ -21,7 +21,8 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _saving = false;
   bool _autoShareLocation = true;
   bool _autoStartEvidence = true;
-  bool _enableOverlayBubble = true;
+  bool _enableOverlayBubble = false;
+  static const _overlayPreferenceKey = 'enable_overlay_bubble_v2';
 
   static const _relations = [
     'Mom',
@@ -92,7 +93,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _fakeCallCommandController.text;
       _autoShareLocation = prefs.getBool('auto_share_location') ?? true;
       _autoStartEvidence = prefs.getBool('auto_start_evidence') ?? true;
-      _enableOverlayBubble = prefs.getBool('enable_overlay_bubble') ?? true;
+      _enableOverlayBubble = prefs.getBool(_overlayPreferenceKey) ?? false;
     });
   }
 
@@ -116,7 +117,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
     await prefs.setBool('auto_share_location', _autoShareLocation);
     await prefs.setBool('auto_start_evidence', _autoStartEvidence);
-    await prefs.setBool('enable_overlay_bubble', _enableOverlayBubble);
+    await prefs.setBool(_overlayPreferenceKey, _enableOverlayBubble);
 
     // Backward-compatible primary contact keys used by SOS/check-in screens.
     await prefs.setString('emergency_name', primary?.name ?? '');
@@ -500,7 +501,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         _switchTile(
           icon: Icons.bubble_chart_rounded,
-          title: 'Show outside-app safety bubble',
+          title: 'Show floating safety bubble',
           value: _enableOverlayBubble,
           onChanged: (value) => setState(() => _enableOverlayBubble = value),
         ),

@@ -35,14 +35,16 @@ class _ShaktiAppState extends State<ShaktiApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      GuardianOverlayService.ensureStarted();
+      GuardianOverlayService.close();
     });
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      GuardianOverlayService.ensureStarted();
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      GuardianOverlayService.close();
     }
   }
 
