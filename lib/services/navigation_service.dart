@@ -44,9 +44,15 @@ class RouteData {
     if (routes.isEmpty) {
       throw Exception('No routes found');
     }
-    final route = routes.first;
-    
-    // Geometry can be a string (encoded polyline) or GeoJSON object. 
+    final route = routes.cast<Map<String, dynamic>>().reduce((best, route) {
+      final bestDistance =
+          (best['distance'] as num?)?.toDouble() ?? double.infinity;
+      final routeDistance =
+          (route['distance'] as num?)?.toDouble() ?? double.infinity;
+      return routeDistance < bestDistance ? route : best;
+    });
+
+    // Geometry can be a string (encoded polyline) or GeoJSON object.
     // We requested geometries=geojson
     final geo = route['geometry'];
     final coords = (geo['coordinates'] as List)
@@ -92,7 +98,9 @@ class NavigationService {
 
   Future<RouteData?> getRoute(double startLat, double startLng, double endLat, double endLng) async {
     try {
-      final url = 'https://api.mapbox.com/directions/v5/mapbox/driving/$startLng,$startLat;$endLng,$endLat?geometries=geojson&access_token=$_mapboxToken';
+      final url =
+          'https://api.mapbox.com/directions/v5/mapbox/driving/$startLng,$startLat;$endLng,$endLat'
+          '?geometries=geojson&overview=full&steps=true&alternatives=true&continue_straight=true&access_token=$_mapboxToken';
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
